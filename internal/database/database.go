@@ -2,52 +2,57 @@ package database
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
-	"time"
+	"sync"
 
 	"github.com/joho/godotenv"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var client *mongo.Client
+/* Used to create a singleton object of MongoDB client.
+Initialized and exposed through  GetMongoClient().*/
+var clientInstance *mongo.Client
 
-func GetClient() *mongo.Client {
-	return client
-}
+// Used during creation of singleton client object in GetMongoClient().
+var clientInstanceError error
 
-func InitDb() {
+// Used to execute client creation procedure only once.
+var mongoOnce sync.Once
+
+// Constants just to hold required database config's.
+const (
+	CONNECTIONSTRING = "mongodb://localhost:27017"
+	DB               = "outfits-app"
+	GARMENTS         = "garments"
+)
+
+func GetMongoClient() (*mongo.Client, error) {
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-
 	mongoUser := os.Getenv("MONGO_DB_USER")
 	mongoPassword := os.Getenv("MONGO_DB_PASSWORD")
-
 	MONGO_DB_URI := "mongodb+srv://" + mongoUser + ":" + mongoPassword + "@aduzki.ifriy.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
 
-	client, err := mongo.NewClient(options.Client().ApplyURI(MONGO_DB_URI))
+	//Perform connection creation operation only once.
+	mongoOnce.Do(func() {
+		// Set client options
+		clientOptions := options.Client().ApplyURI(MONGO_DB_URI)
+		// Connect to MongoDB
+		client, err := mongo.Connect(context.TODO(), clientOptions)
+		if err != nil {
+			clientInstanceError = err
+		}
+		// Check the connection
+		err = client.Ping(context.TODO(), nil)
+		if err != nil {
+			clientInstanceError = err
+		}
+		clientInstance = client
+	})
 
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	err = client.Connect(ctx)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	databases, err := client.ListDatabaseNames(ctx, bson.M{})
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(databases)
-
-	defer client.Disconnect(ctx)
+	return clientInstance, clientInstanceError
 }
