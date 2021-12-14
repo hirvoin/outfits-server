@@ -26,26 +26,28 @@ const (
 	CONNECTIONSTRING = "mongodb://localhost:27017"
 	DB               = "outfits-app"
 	GARMENTS         = "garments"
+	OUTFITS          = "outfits"
 )
 
 func GetMongoClient() (*mongo.Client, error) {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-	mongoUser := os.Getenv("MONGO_DB_USER")
-	mongoPassword := os.Getenv("MONGO_DB_PASSWORD")
-	MONGO_DB_URI := "mongodb+srv://" + mongoUser + ":" + mongoPassword + "@aduzki.ifriy.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
-
-	//Perform connection creation operation only once.
+	// Perform connection creation operation only once.
 	mongoOnce.Do(func() {
-		// Set client options
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+		mongoUser := os.Getenv("MONGO_DB_USER")
+		mongoPassword := os.Getenv("MONGO_DB_PASSWORD")
+		MONGO_DB_URI := "mongodb+srv://" + mongoUser + ":" + mongoPassword + "@aduzki.ifriy.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+
+		// Set client options and connect to database
 		clientOptions := options.Client().ApplyURI(MONGO_DB_URI)
-		// Connect to MongoDB
 		client, err := mongo.Connect(context.TODO(), clientOptions)
+
 		if err != nil {
 			clientInstanceError = err
 		}
+
 		// Check the connection
 		err = client.Ping(context.TODO(), nil)
 		if err != nil {
