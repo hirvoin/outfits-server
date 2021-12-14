@@ -28,12 +28,12 @@ func main() {
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	defer client.Disconnect(ctx)
 
-	result, err := garments.GetAll()
+	garment, err := garments.GetGarmentById("61b8e4f4be68f9bddbd64c83")
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	fmt.Println(result)
+	fmt.Println(garment)
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
 

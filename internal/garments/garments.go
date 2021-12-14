@@ -2,18 +2,20 @@ package garments
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hirvoin/outfits-server/internal/database"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Garment struct {
-	ID        string
-	Title     string
-	Category  string
-	Color     string
-	wearCount int
+	ID        primitive.ObjectID `bson:"_id"`
+	Title     string             `bson:"title"`
+	Category  string             `bson:"category"`
+	Color     string             `bson:"color"`
+	wearCount int                `bson:"wear_count"`
 }
 
 //CreateGarment - Insert a new document in the collection.
@@ -34,41 +36,71 @@ func CreateGarment(garment Garment) error {
 	return nil
 }
 
-//GetAll - Get All garments for collection
-func GetAll() ([]Garment, error) {
+// GetGarmentById - Get garment by id for collection
+func GetGarmentById(id string) (Garment, error) {
+	garment := Garment{}
+
 	//Define filter query for fetching specific document from collection
-	filter := bson.D{{}} //bson.D{{}} specifies 'all documents'
-	issues := []Garment{}
+	objId, _ := primitive.ObjectIDFromHex(id)
+	filter := bson.D{primitive.E{Key: "_id", Value: objId}}
 
 	//Get MongoDB connection.
 	client, err := database.GetMongoClient()
 	if err != nil {
-		return issues, err
+		return garment, err
 	}
 
-	//Create a handle to the respective collection in the database.
+	// Create a handle to the respective collection in the database.
 	collection := client.Database(database.DB).Collection(database.GARMENTS)
 
-	//Perform Find operation & validate against the error.
+	// Perform FindOne operation & validate against the error.
+	err = collection.FindOne(context.TODO(), filter).Decode(&garment)
+	if err != nil {
+		return garment, err
+	}
+	// Return result
+	return garment, nil
+}
+
+// GetAll - Get All garments f collection
+func GetAll() ([]Garment, error) {
+	garments := []Garment{}
+
+	//Define filter query for fetching specific document from collection
+	filter := bson.D{{}}
+
+	//Get MongoDB connection.
+	client, err := database.GetMongoClient()
+	if err != nil {
+		return garments, err
+	}
+
+	// Create a handle to the respective collection in the database.
+	collection := client.Database(database.DB).Collection(database.GARMENTS)
+
+	// Perform Find operation & validate against the error.
 	cur, findError := collection.Find(context.TODO(), filter)
 	if findError != nil {
-		return issues, findError
+		return garments, findError
 	}
 
-	//Map result to slice
+	// Map result to slice
 	for cur.Next(context.TODO()) {
-		t := Garment{}
-		err := cur.Decode(&t)
+		garment := Garment{}
+		err := cur.Decode(&garment)
 		if err != nil {
-			return issues, err
+			return garments, err
 		}
-		issues = append(issues, t)
+		garments = append(garments, garment)
 	}
 
-	// once exhausted, close the cursor
+	// Once exhausted, close the cursor
 	cur.Close(context.TODO())
-	if len(issues) == 0 {
-		return issues, mongo.ErrNoDocuments
+	if len(garments) == 0 {
+		return garments, mongo.ErrNoDocuments
 	}
-	return issues, nil
+
+	fmt.Println(garments)
+	// Return result
+	return garments, nil
 }
