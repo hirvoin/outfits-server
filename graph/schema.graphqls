@@ -1,0 +1,60 @@
+type User {
+  id: ID!
+  name: String!
+}
+
+type Garment {
+  id: ID!
+  user: User!
+  title: String!
+  category: String!
+  color: String!
+  wearCount: Int!
+  isFavorite: Boolean!
+}
+
+type Outfit {
+  id: ID!
+  user: User!
+  date: String!
+  garments: [Garment!]!
+}
+
+type Query {
+  garments: [Garment!]!
+  outfits: [Outfit!]!
+}
+
+input NewGarment {
+  userId: ID!
+  title: String!
+  category: String!
+  color: String!
+}
+
+# input NewOutfit {
+#   userId: ID!
+#   garments: [Garment!]!
+# }
+
+input NewUser {
+  username: String!
+  password: String!
+}
+
+input Login {
+  username: String!
+  password: String!
+}
+
+input RefreshTokenInput {
+  token: String!
+}
+
+type Mutation {
+  createGarment(input: NewGarment!): Garment!
+  # createOutfit(input: NewOutfit!): Outfit!
+  createUser(input: NewUser!): String!
+  login(input: Login!): String!
+  refreshToken(input: RefreshTokenInput!): String!
+}
