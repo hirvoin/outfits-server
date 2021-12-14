@@ -55,6 +55,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		CreateGarment func(childComplexity int, input model.NewGarment) int
+		CreateOutfit  func(childComplexity int, input model.NewOutfit) int
 		CreateUser    func(childComplexity int, input model.NewUser) int
 		Login         func(childComplexity int, input model.Login) int
 		RefreshToken  func(childComplexity int, input model.RefreshTokenInput) int
@@ -80,6 +81,7 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	CreateGarment(ctx context.Context, input model.NewGarment) (*model.Garment, error)
+	CreateOutfit(ctx context.Context, input model.NewOutfit) (*model.Outfit, error)
 	CreateUser(ctx context.Context, input model.NewUser) (string, error)
 	Login(ctx context.Context, input model.Login) (string, error)
 	RefreshToken(ctx context.Context, input model.RefreshTokenInput) (string, error)
@@ -164,6 +166,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateGarment(childComplexity, args["input"].(model.NewGarment)), true
+
+	case "Mutation.createOutfit":
+		if e.complexity.Mutation.CreateOutfit == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createOutfit_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateOutfit(childComplexity, args["input"].(model.NewOutfit)), true
 
 	case "Mutation.createUser":
 		if e.complexity.Mutation.CreateUser == nil {
@@ -355,10 +369,10 @@ input NewGarment {
   color: String!
 }
 
-# input NewOutfit {
-#   userId: ID!
-#   garments: [Garment!]!
-# }
+input NewOutfit {
+  userId: ID!
+  garments: [ID!]!
+}
 
 input NewUser {
   username: String!
@@ -376,7 +390,7 @@ input RefreshTokenInput {
 
 type Mutation {
   createGarment(input: NewGarment!): Garment!
-  # createOutfit(input: NewOutfit!): Outfit!
+  createOutfit(input: NewOutfit!): Outfit!
   createUser(input: NewUser!): String!
   login(input: Login!): String!
   refreshToken(input: RefreshTokenInput!): String!
@@ -396,6 +410,21 @@ func (ec *executionContext) field_Mutation_createGarment_args(ctx context.Contex
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNNewGarment2githubᚗcomᚋhirvoinᚋoutfitsᚑserverᚋgraphᚋmodelᚐNewGarment(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createOutfit_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.NewOutfit
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNNewOutfit2githubᚗcomᚋhirvoinᚋoutfitsᚑserverᚋgraphᚋmodelᚐNewOutfit(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -787,6 +816,48 @@ func (ec *executionContext) _Mutation_createGarment(ctx context.Context, field g
 	res := resTmp.(*model.Garment)
 	fc.Result = res
 	return ec.marshalNGarment2ᚖgithubᚗcomᚋhirvoinᚋoutfitsᚑserverᚋgraphᚋmodelᚐGarment(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createOutfit(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createOutfit_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateOutfit(rctx, args["input"].(model.NewOutfit))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Outfit)
+	fc.Result = res
+	return ec.marshalNOutfit2ᚖgithubᚗcomᚋhirvoinᚋoutfitsᚑserverᚋgraphᚋmodelᚐOutfit(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2466,6 +2537,37 @@ func (ec *executionContext) unmarshalInputNewGarment(ctx context.Context, obj in
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputNewOutfit(ctx context.Context, obj interface{}) (model.NewOutfit, error) {
+	var it model.NewOutfit
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "userId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
+			it.UserID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "garments":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("garments"))
+			it.Garments, err = ec.unmarshalNID2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputNewUser(ctx context.Context, obj interface{}) (model.NewUser, error) {
 	var it model.NewUser
 	asMap := map[string]interface{}{}
@@ -2602,6 +2704,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = graphql.MarshalString("Mutation")
 		case "createGarment":
 			out.Values[i] = ec._Mutation_createGarment(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createOutfit":
+			out.Values[i] = ec._Mutation_createOutfit(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -3101,6 +3208,42 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
+func (ec *executionContext) unmarshalNID2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNID2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNID2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNID2string(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
 	res, err := graphql.UnmarshalInt(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -3126,9 +3269,18 @@ func (ec *executionContext) unmarshalNNewGarment2githubᚗcomᚋhirvoinᚋoutfit
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNNewOutfit2githubᚗcomᚋhirvoinᚋoutfitsᚑserverᚋgraphᚋmodelᚐNewOutfit(ctx context.Context, v interface{}) (model.NewOutfit, error) {
+	res, err := ec.unmarshalInputNewOutfit(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNNewUser2githubᚗcomᚋhirvoinᚋoutfitsᚑserverᚋgraphᚋmodelᚐNewUser(ctx context.Context, v interface{}) (model.NewUser, error) {
 	res, err := ec.unmarshalInputNewUser(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNOutfit2githubᚗcomᚋhirvoinᚋoutfitsᚑserverᚋgraphᚋmodelᚐOutfit(ctx context.Context, sel ast.SelectionSet, v model.Outfit) graphql.Marshaler {
+	return ec._Outfit(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNOutfit2ᚕᚖgithubᚗcomᚋhirvoinᚋoutfitsᚑserverᚋgraphᚋmodelᚐOutfitᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Outfit) graphql.Marshaler {

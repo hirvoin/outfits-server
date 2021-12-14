@@ -2,7 +2,6 @@ package garments
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/hirvoin/outfits-server/internal/database"
 	"go.mongodb.org/mongo-driver/bson"
@@ -11,32 +10,35 @@ import (
 )
 
 type Garment struct {
-	ID        primitive.ObjectID `bson:"_id"`
-	Title     string             `bson:"title"`
-	Category  string             `bson:"category"`
-	Color     string             `bson:"color"`
-	wearCount int                `bson:"wear_count"`
+	ID          primitive.ObjectID `bson:"_id"`
+	Title       string             `bson:"title"`
+	Category    string             `bson:"category"`
+	Color       string             `bson:"color"`
+	WearCount   int                `bson:"wearCount"`
+	IsFavorited bool               `bson:"isFavorited"`
 }
 
-//CreateGarment - Insert a new document in the collection.
-func CreateGarment(garment Garment) error {
+// Insert a new document in the collection.
+func CreateGarment(garment Garment) (*mongo.InsertOneResult, error) {
 	//Get MongoDB connection using connectionhelper.
 	client, err := database.GetMongoClient()
 	if err != nil {
-		return err
+		return nil, err
 	}
+
 	//Create a handle to the respective collection in the database.
 	collection := client.Database(database.DB).Collection(database.GARMENTS)
+
 	//Perform InsertOne operation & validate against the error.
-	_, err = collection.InsertOne(context.TODO(), garment)
+	res, err := collection.InsertOne(context.TODO(), garment)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	//Return success without any error.
-	return nil
+
+	return res, nil
 }
 
-// GetGarmentById - Get garment by id for collection
+// Get garment by id from collection.
 func GetGarmentById(id string) (Garment, error) {
 	garment := Garment{}
 
@@ -58,11 +60,11 @@ func GetGarmentById(id string) (Garment, error) {
 	if err != nil {
 		return garment, err
 	}
-	// Return result
+
 	return garment, nil
 }
 
-// GetAll - Get All garments f collection
+// Get all garments from collection.
 func GetAll() ([]Garment, error) {
 	garments := []Garment{}
 
@@ -100,7 +102,5 @@ func GetAll() ([]Garment, error) {
 		return garments, mongo.ErrNoDocuments
 	}
 
-	fmt.Println(garments)
-	// Return result
 	return garments, nil
 }

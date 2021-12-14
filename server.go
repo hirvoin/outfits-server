@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -13,7 +12,6 @@ import (
 	"github.com/hirvoin/outfits-server/graph"
 	"github.com/hirvoin/outfits-server/graph/generated"
 	"github.com/hirvoin/outfits-server/internal/database"
-	"github.com/hirvoin/outfits-server/internal/garments"
 )
 
 const defaultPort = "8080"
@@ -27,13 +25,6 @@ func main() {
 	client, _ := database.GetMongoClient()
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	defer client.Disconnect(ctx)
-
-	garment, err := garments.GetGarmentById("61b8e4f4be68f9bddbd64c83")
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	fmt.Println(garment)
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
 

@@ -24,6 +24,11 @@ type NewGarment struct {
 	Color    string `json:"color"`
 }
 
+type NewOutfit struct {
+	UserID   string   `json:"userId"`
+	Garments []string `json:"garments"`
+}
+
 type NewUser struct {
 	Username string `json:"username"`
 	Password string `json:"password"`

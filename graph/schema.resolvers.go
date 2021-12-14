@@ -9,19 +9,30 @@ import (
 
 	"github.com/hirvoin/outfits-server/graph/generated"
 	"github.com/hirvoin/outfits-server/graph/model"
+	"github.com/hirvoin/outfits-server/internal/garments"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func (r *mutationResolver) CreateGarment(ctx context.Context, input model.NewGarment) (*model.Garment, error) {
-	var garment model.Garment
-	var user model.User
-	user.Name = "admin"
+	var garment garments.Garment
 
 	garment.Title = input.Title
 	garment.Color = input.Color
 	garment.Category = input.Category
-	garment.User = &user
+	garment.ID = primitive.NewObjectID()
 
-	return &garment, nil
+	_, err := garments.CreateGarment(garment)
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	return &model.Garment{ID: garment.ID.Hex(), Title: garment.Title, Color: garment.Color, Category: garment.Category, WearCount: 0, IsFavorite: false}, nil
+}
+
+func (r *mutationResolver) CreateOutfit(ctx context.Context, input model.NewOutfit) (*model.Outfit, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (string, error) {
@@ -37,17 +48,13 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, input model.Refresh
 }
 
 func (r *queryResolver) Garments(ctx context.Context) ([]*model.Garment, error) {
-	var garments []*model.Garment
-	dummyGarment := model.Garment{
-		User:       &model.User{Name: "admin"},
-		Title:      "Dummy garment",
-		Category:   "outerwear",
-		Color:      "black",
-		WearCount:  0,
-		IsFavorite: false,
+	var result []*model.Garment
+	dbGarments, _ := garments.GetAll()
+
+	for _, garment := range dbGarments {
+		result = append(result, &model.Garment{ID: garment.ID.Hex(), Title: garment.Title, Category: garment.Category, Color: garment.Color, WearCount: garment.WearCount, IsFavorite: garment.IsFavorited})
 	}
-	garments = append(garments, &dummyGarment)
-	return garments, nil
+	return result, nil
 }
 
 func (r *queryResolver) Outfits(ctx context.Context) ([]*model.Outfit, error) {

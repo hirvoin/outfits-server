@@ -32,10 +32,10 @@ input NewGarment {
   color: String!
 }
 
-# input NewOutfit {
-#   userId: ID!
-#   garments: [Garment!]!
-# }
+input NewOutfit {
+  userId: ID!
+  garments: [ID!]!
+}
 
 input NewUser {
   username: String!
@@ -53,7 +53,7 @@ input RefreshTokenInput {
 
 type Mutation {
   createGarment(input: NewGarment!): Garment!
-  # createOutfit(input: NewOutfit!): Outfit!
+  createOutfit(input: NewOutfit!): Outfit!
   createUser(input: NewUser!): String!
   login(input: Login!): String!
   refreshToken(input: RefreshTokenInput!): String!
