@@ -6,10 +6,12 @@ package graph
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/hirvoin/outfits-server/graph/generated"
 	"github.com/hirvoin/outfits-server/graph/model"
 	"github.com/hirvoin/outfits-server/internal/garments"
+	"github.com/hirvoin/outfits-server/internal/outfits"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -32,7 +34,44 @@ func (r *mutationResolver) CreateGarment(ctx context.Context, input model.NewGar
 }
 
 func (r *mutationResolver) CreateOutfit(ctx context.Context, input model.NewOutfit) (*model.Outfit, error) {
-	panic(fmt.Errorf("not implemented"))
+	var outfit outfits.Outfit
+	var garmentIds []primitive.ObjectID
+	var modelGarments []*model.Garment
+
+	// Get given Garments by id from collection
+	dbGarments, getError := garments.GetGarmentsByIds(input.Garments)
+	if getError != nil {
+		fmt.Println(getError)
+		return nil, getError
+	}
+
+	// Format given Garments from collection to model.Garments
+	for _, dbGarment := range dbGarments {
+		modelGarments = append(modelGarments, dbGarment.FormatToModel())
+	}
+
+	// Format given garment ids to ObjectIDs
+	for _, id := range input.Garments {
+		objectId, err := primitive.ObjectIDFromHex(id)
+		if err == nil {
+			fmt.Println(err)
+			garmentIds = append(garmentIds, objectId)
+		}
+	}
+
+	outfit.ID = primitive.NewObjectID()
+	outfit.Date = primitive.NewDateTimeFromTime(time.Now())
+	outfit.Garments = garmentIds
+
+	// Insert outfit to collection
+	_, createError := outfits.CreateOutfit(outfit)
+
+	if createError != nil {
+		fmt.Println(createError)
+		return nil, createError
+	}
+
+	return &model.Outfit{ID: outfit.ID.Hex(), Date: outfit.Date.Time().String(), Garments: modelGarments}, nil
 }
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (string, error) {
@@ -52,7 +91,7 @@ func (r *queryResolver) Garments(ctx context.Context) ([]*model.Garment, error) 
 	dbGarments, _ := garments.GetAll()
 
 	for _, garment := range dbGarments {
-		result = append(result, &model.Garment{ID: garment.ID.Hex(), Title: garment.Title, Category: garment.Category, Color: garment.Color, WearCount: garment.WearCount, IsFavorite: garment.IsFavorited})
+		result = append(result, &model.Garment{ID: garment.ID.Hex(), Title: garment.Title, Category: garment.Category, Color: garment.Color, WearCount: garment.WearCount, IsFavorite: garment.IsFavorite})
 	}
 	return result, nil
 }
