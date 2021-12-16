@@ -22,6 +22,7 @@ func (r *mutationResolver) CreateGarment(ctx context.Context, input model.NewGar
 	garment.Color = input.Color
 	garment.Category = input.Category
 	garment.ID = primitive.NewObjectID()
+	garment.ImageUri = input.ImageURI
 
 	_, err := garments.CreateGarment(garment)
 
@@ -30,7 +31,7 @@ func (r *mutationResolver) CreateGarment(ctx context.Context, input model.NewGar
 		return nil, err
 	}
 
-	return &model.Garment{ID: garment.ID.Hex(), Title: garment.Title, Color: garment.Color, Category: garment.Category, WearCount: 0, IsFavorite: false}, nil
+	return &model.Garment{ID: garment.ID.Hex(), Title: garment.Title, Color: garment.Color, Category: garment.Category, ImageURI: garment.ImageUri, WearCount: 0, IsFavorite: false}, nil
 }
 
 func (r *mutationResolver) CreateOutfit(ctx context.Context, input model.NewOutfit) (*model.Outfit, error) {
@@ -83,13 +84,36 @@ func (r *queryResolver) Garments(ctx context.Context) ([]*model.Garment, error) 
 	dbGarments, _ := garments.GetAll()
 
 	for _, garment := range dbGarments {
-		result = append(result, &model.Garment{ID: garment.ID.Hex(), Title: garment.Title, Category: garment.Category, Color: garment.Color, WearCount: garment.WearCount, IsFavorite: garment.IsFavorite})
+		result = append(result, &model.Garment{ID: garment.ID.Hex(), Title: garment.Title, Category: garment.Category, Color: garment.Color, WearCount: garment.WearCount, IsFavorite: garment.IsFavorite, ImageURI: garment.ImageUri})
 	}
 	return result, nil
 }
 
 func (r *queryResolver) Outfits(ctx context.Context) ([]*model.Outfit, error) {
-	panic(fmt.Errorf("not implemented"))
+	var modelGarments []*model.Garment
+	var result []*model.Outfit
+
+	dbOutfits, outfitsError := outfits.GetAll()
+	if outfitsError != nil {
+		fmt.Println(outfitsError)
+		return nil, outfitsError
+	}
+
+	dbGarments, garmentError := garments.GetAll()
+	if garmentError != nil {
+		fmt.Println(garmentError)
+		return nil, garmentError
+	}
+
+	// Create slices for garment ids and Garments formatted to model.Garments
+	for _, dbGarment := range dbGarments {
+		modelGarments = append(modelGarments, dbGarment.FormatToModel())
+	}
+
+	for _, outfit := range dbOutfits {
+		result = append(result, &model.Outfit{ID: outfit.ID.Hex(), Garments: modelGarments, Date: outfit.Date.Time().String()})
+	}
+	return result, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

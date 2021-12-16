@@ -47,6 +47,7 @@ type ComplexityRoot struct {
 		Category   func(childComplexity int) int
 		Color      func(childComplexity int) int
 		ID         func(childComplexity int) int
+		ImageURI   func(childComplexity int) int
 		IsFavorite func(childComplexity int) int
 		Title      func(childComplexity int) int
 		User       func(childComplexity int) int
@@ -126,6 +127,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Garment.ID(childComplexity), true
+
+	case "Garment.imageUri":
+		if e.complexity.Garment.ImageURI == nil {
+			break
+		}
+
+		return e.complexity.Garment.ImageURI(childComplexity), true
 
 	case "Garment.isFavorite":
 		if e.complexity.Garment.IsFavorite == nil {
@@ -348,6 +356,7 @@ type Garment {
   color: String!
   wearCount: Int!
   isFavorite: Boolean!
+  imageUri: String!
 }
 
 type Outfit {
@@ -367,6 +376,7 @@ input NewGarment {
   title: String!
   category: String!
   color: String!
+  imageUri: String!
 }
 
 input NewOutfit {
@@ -774,6 +784,41 @@ func (ec *executionContext) _Garment_isFavorite(ctx context.Context, field graph
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Garment_imageUri(ctx context.Context, field graphql.CollectedField, obj *model.Garment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Garment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ImageURI, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createGarment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2531,6 +2576,14 @@ func (ec *executionContext) unmarshalInputNewGarment(ctx context.Context, obj in
 			if err != nil {
 				return it, err
 			}
+		case "imageUri":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("imageUri"))
+			it.ImageURI, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -2673,6 +2726,11 @@ func (ec *executionContext) _Garment(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "isFavorite":
 			out.Values[i] = ec._Garment_isFavorite(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "imageUri":
+			out.Values[i] = ec._Garment_imageUri(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

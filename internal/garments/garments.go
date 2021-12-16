@@ -18,11 +18,11 @@ type Garment struct {
 	Color      string             `bson:"color"`
 	WearCount  int                `bson:"wearCount"`
 	IsFavorite bool               `bson:"isFavorited"`
+	ImageUri   string             `bson:"imageUri"`
 }
 
 // Formats collection Garment to model Garment
 func (dbGarment *Garment) FormatToModel() *model.Garment {
-	fmt.Println("DBGARMENT", dbGarment.ID.Hex())
 	var garment model.Garment
 	garment.ID = dbGarment.ID.Hex()
 	garment.Title = dbGarment.Title
@@ -30,6 +30,7 @@ func (dbGarment *Garment) FormatToModel() *model.Garment {
 	garment.Category = dbGarment.Category
 	garment.IsFavorite = dbGarment.IsFavorite
 	garment.WearCount = dbGarment.WearCount
+	garment.ImageURI = dbGarment.ImageUri
 	return &garment
 }
 
@@ -57,7 +58,7 @@ func CreateGarment(garment Garment) (*mongo.InsertOneResult, error) {
 func GetGarmentById(id string) (Garment, error) {
 	garment := Garment{}
 
-	//Define filter query for fetching specific document from collection
+	// Define filter query for fetching specific garment from collection
 	objId, _ := primitive.ObjectIDFromHex(id)
 	filter := bson.D{primitive.E{Key: "_id", Value: objId}}
 

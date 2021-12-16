@@ -10,6 +10,7 @@ type Garment struct {
 	Color      string `json:"color"`
 	WearCount  int    `json:"wearCount"`
 	IsFavorite bool   `json:"isFavorite"`
+	ImageURI   string `json:"imageUri"`
 }
 
 type Login struct {
@@ -22,6 +23,7 @@ type NewGarment struct {
 	Title    string `json:"title"`
 	Category string `json:"category"`
 	Color    string `json:"color"`
+	ImageURI string `json:"imageUri"`
 }
 
 type NewOutfit struct {
