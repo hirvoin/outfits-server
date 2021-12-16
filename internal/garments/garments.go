@@ -2,6 +2,7 @@ package garments
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hirvoin/outfits-server/graph/model"
 	"github.com/hirvoin/outfits-server/internal/database"
@@ -21,14 +22,15 @@ type Garment struct {
 
 // Formats collection Garment to model Garment
 func (dbGarment *Garment) FormatToModel() *model.Garment {
-	var garment *model.Garment
+	fmt.Println("DBGARMENT", dbGarment.ID.Hex())
+	var garment model.Garment
 	garment.ID = dbGarment.ID.Hex()
 	garment.Title = dbGarment.Title
 	garment.Color = dbGarment.Color
 	garment.Category = dbGarment.Category
 	garment.IsFavorite = dbGarment.IsFavorite
 	garment.WearCount = dbGarment.WearCount
-	return garment
+	return &garment
 }
 
 // Insert new garment to the collection.
@@ -128,6 +130,7 @@ func GetAll() ([]Garment, error) {
 	//Get MongoDB connection.
 	client, err := database.GetMongoClient()
 	if err != nil {
+		fmt.Println(err)
 		return garments, err
 	}
 
@@ -137,6 +140,7 @@ func GetAll() ([]Garment, error) {
 	// Perform Find operation & validate against the error.
 	cur, err := collection.Find(context.TODO(), filter)
 	if err != nil {
+		fmt.Println(err)
 		return garments, err
 	}
 
@@ -145,6 +149,7 @@ func GetAll() ([]Garment, error) {
 		garment := Garment{}
 		err := cur.Decode(&garment)
 		if err != nil {
+			fmt.Println(err)
 			return garments, err
 		}
 		garments = append(garments, garment)

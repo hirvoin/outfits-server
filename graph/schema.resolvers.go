@@ -39,24 +39,16 @@ func (r *mutationResolver) CreateOutfit(ctx context.Context, input model.NewOutf
 	var modelGarments []*model.Garment
 
 	// Get given Garments by id from collection
-	dbGarments, getError := garments.GetGarmentsByIds(input.Garments)
+	dbGarments, getError := garments.GetAll()
 	if getError != nil {
 		fmt.Println(getError)
 		return nil, getError
 	}
 
-	// Format given Garments from collection to model.Garments
+	// Create slices for garment ids and Garments formatted to model.Garments
 	for _, dbGarment := range dbGarments {
+		garmentIds = append(garmentIds, dbGarment.ID)
 		modelGarments = append(modelGarments, dbGarment.FormatToModel())
-	}
-
-	// Format given garment ids to ObjectIDs
-	for _, id := range input.Garments {
-		objectId, err := primitive.ObjectIDFromHex(id)
-		if err == nil {
-			fmt.Println(err)
-			garmentIds = append(garmentIds, objectId)
-		}
 	}
 
 	outfit.ID = primitive.NewObjectID()
