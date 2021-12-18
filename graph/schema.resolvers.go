@@ -84,7 +84,7 @@ func (r *queryResolver) Garments(ctx context.Context, category *string) ([]*mode
 	dbGarments, _ := garments.GetAll()
 
 	for _, garment := range dbGarments {
-		if category != nil && *category == garment.Category {
+		if category == nil || *category == garment.Category {
 			result = append(result, &model.Garment{ID: garment.ID.Hex(), Title: garment.Title, Category: garment.Category, Color: garment.Color, WearCount: garment.WearCount, IsFavorite: garment.IsFavorite, ImageURI: garment.ImageUri})
 		}
 	}
