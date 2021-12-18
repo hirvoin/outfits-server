@@ -81,17 +81,17 @@ func GetGarmentById(id string) (Garment, error) {
 }
 
 // Get Garments by ids from collection.
-func GetGarmentsByIds(ids []string) ([]Garment, error) {
+func GetGarmentsByIds(ids []primitive.ObjectID) ([]Garment, error) {
 	garments := []Garment{}
-
-	//Define filter query for fetching specific documents from collection
-	filter := bson.D{primitive.E{Key: "_id", Value: ids}}
 
 	//Get MongoDB connection.
 	client, err := database.GetMongoClient()
 	if err != nil {
 		return garments, err
 	}
+
+	//Define filter query for fetching specific documents from collection
+	filter := bson.M{"_id": bson.M{"$in": ids}}
 
 	// Create a handle to the respective collection in the database.
 	collection := client.Database(database.DB).Collection(database.GARMENTS)

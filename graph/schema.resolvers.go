@@ -99,18 +99,18 @@ func (r *queryResolver) Outfits(ctx context.Context) ([]*model.Outfit, error) {
 		return nil, outfitsError
 	}
 
-	dbGarments, garmentError := garments.GetAll()
-	if garmentError != nil {
-		fmt.Println(garmentError)
-		return nil, garmentError
-	}
-
-	// Create slices for garment ids and Garments formatted to model.Garments
-	for _, dbGarment := range dbGarments {
-		modelGarments = append(modelGarments, dbGarment.FormatToModel())
-	}
-
 	for _, outfit := range dbOutfits {
+		dbGarments, garmentError := garments.GetGarmentsByIds(outfit.Garments)
+		if garmentError != nil {
+			fmt.Println(garmentError)
+			return nil, garmentError
+		}
+
+		// Create slices for outfit.Garments formatted to model.Garments
+		for _, dbGarment := range dbGarments {
+			modelGarments = append(modelGarments, dbGarment.FormatToModel())
+		}
+
 		result = append(result, &model.Outfit{ID: outfit.ID.Hex(), Garments: modelGarments, Date: outfit.Date.Time().String()})
 	}
 	return result, nil
