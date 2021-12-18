@@ -70,7 +70,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Garments func(childComplexity int) int
+		Garments func(childComplexity int, category *string) int
 		Outfits  func(childComplexity int) int
 	}
 
@@ -88,7 +88,7 @@ type MutationResolver interface {
 	RefreshToken(ctx context.Context, input model.RefreshTokenInput) (string, error)
 }
 type QueryResolver interface {
-	Garments(ctx context.Context) ([]*model.Garment, error)
+	Garments(ctx context.Context, category *string) ([]*model.Garment, error)
 	Outfits(ctx context.Context) ([]*model.Outfit, error)
 }
 
@@ -256,7 +256,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.Garments(childComplexity), true
+		args, err := ec.field_Query_garments_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Garments(childComplexity, args["category"].(*string)), true
 
 	case "Query.outfits":
 		if e.complexity.Query.Outfits == nil {
@@ -367,7 +372,7 @@ type Outfit {
 }
 
 type Query {
-  garments: [Garment!]!
+  garments(category: String): [Garment!]!
   outfits: [Outfit!]!
 }
 
@@ -500,6 +505,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_garments_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["category"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("category"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["category"] = arg0
 	return args, nil
 }
 
@@ -1187,9 +1207,16 @@ func (ec *executionContext) _Query_garments(ctx context.Context, field graphql.C
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_garments_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Garments(rctx)
+		return ec.resolvers.Query().Garments(rctx, args["category"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

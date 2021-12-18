@@ -79,12 +79,14 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, input model.Refresh
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *queryResolver) Garments(ctx context.Context) ([]*model.Garment, error) {
+func (r *queryResolver) Garments(ctx context.Context, category *string) ([]*model.Garment, error) {
 	var result []*model.Garment
 	dbGarments, _ := garments.GetAll()
 
 	for _, garment := range dbGarments {
-		result = append(result, &model.Garment{ID: garment.ID.Hex(), Title: garment.Title, Category: garment.Category, Color: garment.Color, WearCount: garment.WearCount, IsFavorite: garment.IsFavorite, ImageURI: garment.ImageUri})
+		if category != nil && *category == garment.Category {
+			result = append(result, &model.Garment{ID: garment.ID.Hex(), Title: garment.Title, Category: garment.Category, Color: garment.Color, WearCount: garment.WearCount, IsFavorite: garment.IsFavorite, ImageURI: garment.ImageUri})
+		}
 	}
 	return result, nil
 }
