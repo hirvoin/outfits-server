@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -36,25 +37,30 @@ func (r *mutationResolver) CreateGarment(ctx context.Context, input model.NewGar
 
 func (r *mutationResolver) CreateOutfit(ctx context.Context, input model.NewOutfit) (*model.Outfit, error) {
 	var outfit outfits.Outfit
-	var garmentIds []primitive.ObjectID
+	var garmentObjectIds []primitive.ObjectID
 	var modelGarments []*model.Garment
 
-	// Get given Garments by id from collection
-	dbGarments, getError := garments.GetAll()
+	// Convert garment string ids to ObjectIds
+	for _, stringId := range input.Garments {
+		objId, _ := primitive.ObjectIDFromHex(stringId)
+		garmentObjectIds = append(garmentObjectIds, objId)
+	}
+
+	// Get given Garments by ObjectIds from collection
+	dbGarments, getError := garments.GetGarmentsByIds(garmentObjectIds)
 	if getError != nil {
 		fmt.Println(getError)
 		return nil, getError
 	}
 
-	// Create slices for garment ids and Garments formatted to model.Garments
+	// Convert dbGarments to  GraphQL schema model.Garments
 	for _, dbGarment := range dbGarments {
-		garmentIds = append(garmentIds, dbGarment.ID)
 		modelGarments = append(modelGarments, dbGarment.FormatToModel())
 	}
 
 	outfit.ID = primitive.NewObjectID()
 	outfit.Date = primitive.NewDateTimeFromTime(time.Now())
-	outfit.Garments = garmentIds
+	outfit.Garments = garmentObjectIds
 
 	// Insert outfit to collection
 	_, createError := outfits.CreateOutfit(outfit)
@@ -81,6 +87,11 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, input model.Refresh
 
 func (r *queryResolver) Garments(ctx context.Context, category *string) ([]*model.Garment, error) {
 	var result []*model.Garment
+
+	if category != nil && *category != "outerwear" && *category != "tops" && *category != "bottoms" && *category != "footwear" {
+		return result, errors.New("Invalid category: " + *category)
+	}
+
 	dbGarments, _ := garments.GetAll()
 
 	for _, garment := range dbGarments {
@@ -92,7 +103,6 @@ func (r *queryResolver) Garments(ctx context.Context, category *string) ([]*mode
 }
 
 func (r *queryResolver) Outfits(ctx context.Context) ([]*model.Outfit, error) {
-	var modelGarments []*model.Garment
 	var result []*model.Outfit
 
 	dbOutfits, outfitsError := outfits.GetAll()
@@ -102,6 +112,8 @@ func (r *queryResolver) Outfits(ctx context.Context) ([]*model.Outfit, error) {
 	}
 
 	for _, outfit := range dbOutfits {
+		var modelGarments []*model.Garment
+
 		dbGarments, garmentError := garments.GetGarmentsByIds(outfit.Garments)
 		if garmentError != nil {
 			fmt.Println(garmentError)
