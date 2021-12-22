@@ -22,7 +22,7 @@ type Outfit {
 }
 
 type Query {
-  garments(category: String): [Garment!]!
+  garments(category: String, id: String): [Garment!]!
   outfits: [Outfit!]!
 }
 

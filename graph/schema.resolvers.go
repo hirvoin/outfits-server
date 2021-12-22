@@ -85,8 +85,17 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, input model.Refresh
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *queryResolver) Garments(ctx context.Context, category *string) ([]*model.Garment, error) {
+func (r *queryResolver) Garments(ctx context.Context, category *string, id *string) ([]*model.Garment, error) {
 	var result []*model.Garment
+
+	if id != nil {
+		garment, err := garments.GetGarmentById(*id)
+		if err != nil {
+			return result, errors.New("No garments found with given id.")
+		}
+		result = append(result, garment.FormatToModel())
+		return result, nil
+	}
 
 	if category != nil && *category != "outerwear" && *category != "tops" && *category != "bottoms" && *category != "footwear" {
 		return result, errors.New("Invalid category: " + *category)

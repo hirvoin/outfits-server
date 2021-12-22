@@ -70,7 +70,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Garments func(childComplexity int, category *string) int
+		Garments func(childComplexity int, category *string, id *string) int
 		Outfits  func(childComplexity int) int
 	}
 
@@ -88,7 +88,7 @@ type MutationResolver interface {
 	RefreshToken(ctx context.Context, input model.RefreshTokenInput) (string, error)
 }
 type QueryResolver interface {
-	Garments(ctx context.Context, category *string) ([]*model.Garment, error)
+	Garments(ctx context.Context, category *string, id *string) ([]*model.Garment, error)
 	Outfits(ctx context.Context) ([]*model.Outfit, error)
 }
 
@@ -261,7 +261,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Garments(childComplexity, args["category"].(*string)), true
+		return e.complexity.Query.Garments(childComplexity, args["category"].(*string), args["id"].(*string)), true
 
 	case "Query.outfits":
 		if e.complexity.Query.Outfits == nil {
@@ -372,7 +372,7 @@ type Outfit {
 }
 
 type Query {
-  garments(category: String): [Garment!]!
+  garments(category: String, id: String): [Garment!]!
   outfits: [Outfit!]!
 }
 
@@ -520,6 +520,15 @@ func (ec *executionContext) field_Query_garments_args(ctx context.Context, rawAr
 		}
 	}
 	args["category"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg1
 	return args, nil
 }
 
@@ -1216,7 +1225,7 @@ func (ec *executionContext) _Query_garments(ctx context.Context, field graphql.C
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Garments(rctx, args["category"].(*string))
+		return ec.resolvers.Query().Garments(rctx, args["category"].(*string), args["id"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

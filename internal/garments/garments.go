@@ -59,7 +59,11 @@ func GetGarmentById(id string) (Garment, error) {
 	garment := Garment{}
 
 	// Define filter query for fetching specific garment from collection
-	objId, _ := primitive.ObjectIDFromHex(id)
+	objId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return garment, err
+	}
+
 	filter := bson.D{primitive.E{Key: "_id", Value: objId}}
 
 	//Get MongoDB connection.
@@ -73,8 +77,9 @@ func GetGarmentById(id string) (Garment, error) {
 
 	// Perform FindOne operation & validate against the error.
 	err = collection.FindOne(context.TODO(), filter).Decode(&garment)
+
 	if err != nil {
-		return garment, err
+		return Garment{}, err
 	}
 
 	return garment, nil
