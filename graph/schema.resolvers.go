@@ -77,6 +77,33 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 	panic(fmt.Errorf("not implemented"))
 }
 
+func (r *mutationResolver) UpdateGarment(ctx context.Context, input *model.UpdatedGarment) (*model.Garment, error) {
+	var garment garments.Garment
+
+	replacedGarment, err := garments.GetGarmentById(input.ID)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	garment.ID = replacedGarment.ID
+	garment.IsFavorite = replacedGarment.IsFavorite
+	garment.WearCount = replacedGarment.WearCount
+	garment.Title = input.Title
+	garment.Color = input.Color
+	garment.Category = input.Category
+	garment.ImageUri = input.ImageURI
+
+	updatedGarment, err := garments.EditGarment(garment)
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	return &model.Garment{ID: updatedGarment.ID.Hex(), Title: updatedGarment.Title, Color: updatedGarment.Color, Category: updatedGarment.Category, ImageURI: updatedGarment.ImageUri, WearCount: updatedGarment.WearCount, IsFavorite: updatedGarment.IsFavorite}, nil
+}
+
 func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string, error) {
 	panic(fmt.Errorf("not implemented"))
 }

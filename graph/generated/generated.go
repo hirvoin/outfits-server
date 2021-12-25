@@ -60,6 +60,7 @@ type ComplexityRoot struct {
 		CreateUser    func(childComplexity int, input model.NewUser) int
 		Login         func(childComplexity int, input model.Login) int
 		RefreshToken  func(childComplexity int, input model.RefreshTokenInput) int
+		UpdateGarment func(childComplexity int, input *model.UpdatedGarment) int
 	}
 
 	Outfit struct {
@@ -84,6 +85,7 @@ type MutationResolver interface {
 	CreateGarment(ctx context.Context, input model.NewGarment) (*model.Garment, error)
 	CreateOutfit(ctx context.Context, input model.NewOutfit) (*model.Outfit, error)
 	CreateUser(ctx context.Context, input model.NewUser) (string, error)
+	UpdateGarment(ctx context.Context, input *model.UpdatedGarment) (*model.Garment, error)
 	Login(ctx context.Context, input model.Login) (string, error)
 	RefreshToken(ctx context.Context, input model.RefreshTokenInput) (string, error)
 }
@@ -222,6 +224,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RefreshToken(childComplexity, args["input"].(model.RefreshTokenInput)), true
+
+	case "Mutation.updateGarment":
+		if e.complexity.Mutation.UpdateGarment == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateGarment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateGarment(childComplexity, args["input"].(*model.UpdatedGarment)), true
 
 	case "Outfit.date":
 		if e.complexity.Outfit.Date == nil {
@@ -384,6 +398,14 @@ input NewGarment {
   imageUri: String!
 }
 
+input UpdatedGarment {
+  id: ID!
+  title: String!
+  category: String!
+  color: String!
+  imageUri: String!
+}
+
 input NewOutfit {
   userId: ID!
   garments: [ID!]!
@@ -407,6 +429,7 @@ type Mutation {
   createGarment(input: NewGarment!): Garment!
   createOutfit(input: NewOutfit!): Outfit!
   createUser(input: NewUser!): String!
+  updateGarment(input: UpdatedGarment): Garment!
   login(input: Login!): String!
   refreshToken(input: RefreshTokenInput!): String!
 }
@@ -485,6 +508,21 @@ func (ec *executionContext) field_Mutation_refreshToken_args(ctx context.Context
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNRefreshTokenInput2githubᚗcomᚋhirvoinᚋoutfitsᚑserverᚋgraphᚋmodelᚐRefreshTokenInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateGarment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *model.UpdatedGarment
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalOUpdatedGarment2ᚖgithubᚗcomᚋhirvoinᚋoutfitsᚑserverᚋgraphᚋmodelᚐUpdatedGarment(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -974,6 +1012,48 @@ func (ec *executionContext) _Mutation_createUser(ctx context.Context, field grap
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateGarment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateGarment_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateGarment(rctx, args["input"].(*model.UpdatedGarment))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Garment)
+	fc.Result = res
+	return ec.marshalNGarment2ᚖgithubᚗcomᚋhirvoinᚋoutfitsᚑserverᚋgraphᚋmodelᚐGarment(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_login(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2711,6 +2791,61 @@ func (ec *executionContext) unmarshalInputRefreshTokenInput(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdatedGarment(ctx context.Context, obj interface{}) (model.UpdatedGarment, error) {
+	var it model.UpdatedGarment
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "title":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
+			it.Title, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "category":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("category"))
+			it.Category, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "color":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("color"))
+			it.Color, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "imageUri":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("imageUri"))
+			it.ImageURI, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -2808,6 +2943,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "createUser":
 			out.Values[i] = ec._Mutation_createUser(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateGarment":
+			out.Values[i] = ec._Mutation_updateGarment(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -3764,6 +3904,14 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	return graphql.MarshalString(*v)
+}
+
+func (ec *executionContext) unmarshalOUpdatedGarment2ᚖgithubᚗcomᚋhirvoinᚋoutfitsᚑserverᚋgraphᚋmodelᚐUpdatedGarment(ctx context.Context, v interface{}) (*model.UpdatedGarment, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputUpdatedGarment(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

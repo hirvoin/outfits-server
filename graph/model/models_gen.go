@@ -47,6 +47,14 @@ type RefreshTokenInput struct {
 	Token string `json:"token"`
 }
 
+type UpdatedGarment struct {
+	ID       string `json:"id"`
+	Title    string `json:"title"`
+	Category string `json:"category"`
+	Color    string `json:"color"`
+	ImageURI string `json:"imageUri"`
+}
+
 type User struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`

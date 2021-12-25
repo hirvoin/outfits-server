@@ -54,6 +54,31 @@ func CreateGarment(garment Garment) (*mongo.InsertOneResult, error) {
 	return res, nil
 }
 
+// Edit garment by replacing garment with new data
+func EditGarment(garment Garment) (Garment, error) {
+	newGarment := Garment{}
+
+	//Get MongoDB connection using connectionhelper.
+	client, err := database.GetMongoClient()
+	if err != nil {
+		return newGarment, err
+	}
+
+	//Create a handle to the respective collection in the database.
+	collection := client.Database(database.DB).Collection(database.GARMENTS)
+
+	filter := bson.D{primitive.E{Key: "_id", Value: garment.ID}}
+
+	//Perform FindOneAndReplace & validate against the error.
+	err = collection.FindOneAndReplace(context.TODO(), filter, garment).Decode(&newGarment)
+
+	if err != nil {
+		return Garment{}, err
+	}
+
+	return newGarment, nil
+}
+
 // Get Garment by id from collection.
 func GetGarmentById(id string) (Garment, error) {
 	garment := Garment{}

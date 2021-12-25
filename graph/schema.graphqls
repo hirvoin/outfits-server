@@ -34,6 +34,14 @@ input NewGarment {
   imageUri: String!
 }
 
+input UpdatedGarment {
+  id: ID!
+  title: String!
+  category: String!
+  color: String!
+  imageUri: String!
+}
+
 input NewOutfit {
   userId: ID!
   garments: [ID!]!
@@ -57,6 +65,7 @@ type Mutation {
   createGarment(input: NewGarment!): Garment!
   createOutfit(input: NewOutfit!): Outfit!
   createUser(input: NewUser!): String!
+  updateGarment(input: UpdatedGarment): Garment!
   login(input: Login!): String!
   refreshToken(input: RefreshTokenInput!): String!
 }
