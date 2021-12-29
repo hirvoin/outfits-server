@@ -12,9 +12,9 @@ import (
 )
 
 type User struct {
-	ID       string `json:"id"`
-	Username string `json:"name"`
-	Password string `json:"password"`
+	ID       primitive.ObjectID `bson:"_id"`
+	Username string             `bson:"username"`
+	Password string             `bson:"password"`
 }
 
 func (user *User) Create() {
@@ -30,7 +30,7 @@ func (user *User) Create() {
 	hashedPassword, err := HashPassword(user.Password)
 
 	//Perform InsertOne operation & validate against the error.
-	_, err = collection.InsertOne(context.TODO(), &User{ID: user.ID, Username: user.Username, Password: hashedPassword})
+	_, err = collection.InsertOne(context.TODO(), &User{ID: primitive.NewObjectID(), Username: user.Username, Password: hashedPassword})
 
 	if err != nil {
 		log.Fatal(err)
@@ -50,7 +50,7 @@ func CheckPasswordHash(password, hash string) bool {
 }
 
 //GetUserIdByUsername check if a user exists in database by given username
-func GetUserIdByUsername(username string) (string, error) {
+func GetUserIdByUsername(username string) (primitive.ObjectID, error) {
 	user := User{}
 
 	client, err := database.GetMongoClient()
@@ -70,4 +70,27 @@ func GetUserIdByUsername(username string) (string, error) {
 	}
 
 	return user.ID, nil
+}
+
+func (user *User) Authenticate() bool {
+	foundUser := User{}
+
+	client, err := database.GetMongoClient()
+	if err != nil {
+		log.Fatal(err)
+		return false
+	}
+
+	filter := bson.D{primitive.E{Key: "username", Value: user.Username}}
+
+	collection := client.Database(database.DB).Collection(database.USERS)
+
+	err = collection.FindOne(context.TODO(), filter).Decode(&foundUser)
+
+	if err != nil {
+		log.Fatal(err)
+		return false
+	}
+
+	return CheckPasswordHash(user.Password, foundUser.Password)
 }

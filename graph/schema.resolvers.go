@@ -13,6 +13,8 @@ import (
 	"github.com/hirvoin/outfits-server/graph/model"
 	"github.com/hirvoin/outfits-server/internal/garments"
 	"github.com/hirvoin/outfits-server/internal/outfits"
+	"github.com/hirvoin/outfits-server/internal/users"
+	"github.com/hirvoin/outfits-server/pkg/jwt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -77,7 +79,16 @@ func (r *mutationResolver) CreateOutfit(ctx context.Context, input model.NewOutf
 }
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (string, error) {
-	panic(fmt.Errorf("not implemented"))
+	var user users.User
+	user.Username = input.Username
+	user.Password = input.Password
+
+	user.Create()
+	token, err := jwt.GenerateToken(user.Username)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
 }
 
 func (r *mutationResolver) UpdateGarment(ctx context.Context, input *model.UpdatedGarment) (*model.Garment, error) {
@@ -108,11 +119,33 @@ func (r *mutationResolver) UpdateGarment(ctx context.Context, input *model.Updat
 }
 
 func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string, error) {
-	panic(fmt.Errorf("not implemented"))
+	var user users.User
+	user.Username = input.Username
+	user.Password = input.Password
+	correct := user.Authenticate()
+
+	if !correct {
+		return "", &users.WrongUsernameOrPasswordError{}
+	}
+
+	token, err := jwt.GenerateToken(user.Username)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }
 
 func (r *mutationResolver) RefreshToken(ctx context.Context, input model.RefreshTokenInput) (string, error) {
-	panic(fmt.Errorf("not implemented"))
+	username, err := jwt.ParseToken(input.Token)
+	if err != nil {
+		return "", fmt.Errorf("access denied")
+	}
+	token, err := jwt.GenerateToken(username)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
 }
 
 func (r *queryResolver) Garments(ctx context.Context, category *string, id *string) ([]*model.Garment, error) {
