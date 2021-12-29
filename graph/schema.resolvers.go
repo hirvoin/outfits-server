@@ -40,21 +40,24 @@ func (r *mutationResolver) CreateOutfit(ctx context.Context, input model.NewOutf
 	var garmentObjectIds []primitive.ObjectID
 	var modelGarments []*model.Garment
 
-	// Convert garment string ids to ObjectIds
 	for _, stringId := range input.Garments {
-		objId, _ := primitive.ObjectIDFromHex(stringId)
+		objId, err := primitive.ObjectIDFromHex(stringId)
+		if err != nil {
+			fmt.Println(err)
+			return nil, err
+		}
+
 		garmentObjectIds = append(garmentObjectIds, objId)
 	}
 
-	// Get given Garments by ObjectIds from collection
-	dbGarments, getError := garments.GetGarmentsByIds(garmentObjectIds)
-	if getError != nil {
-		fmt.Println(getError)
-		return nil, getError
+	dbGarments, err := garments.GetGarmentsByIds(garmentObjectIds)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
 	}
 
-	// Convert dbGarments to  GraphQL schema model.Garments
 	for _, dbGarment := range dbGarments {
+		dbGarment.WearCount++
 		modelGarments = append(modelGarments, dbGarment.FormatToModel())
 	}
 
@@ -62,14 +65,14 @@ func (r *mutationResolver) CreateOutfit(ctx context.Context, input model.NewOutf
 	outfit.Date = primitive.NewDateTimeFromTime(time.Now())
 	outfit.Garments = garmentObjectIds
 
-	// Insert outfit to collection
-	_, createError := outfits.CreateOutfit(outfit)
+	_, err = outfits.CreateOutfit(outfit)
 
-	if createError != nil {
-		fmt.Println(createError)
-		return nil, createError
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
 	}
 
+	// TODO: Refactor time formatting
 	return &model.Outfit{ID: outfit.ID.Hex(), Date: outfit.Date.Time().String(), Garments: modelGarments}, nil
 }
 
@@ -156,7 +159,6 @@ func (r *queryResolver) Outfits(ctx context.Context) ([]*model.Outfit, error) {
 			return nil, garmentError
 		}
 
-		// Create slices for outfit.Garments formatted to model.Garments
 		for _, dbGarment := range dbGarments {
 			modelGarments = append(modelGarments, dbGarment.FormatToModel())
 		}

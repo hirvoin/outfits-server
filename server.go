@@ -9,8 +9,10 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/go-chi/chi"
 	"github.com/hirvoin/outfits-server/graph"
 	"github.com/hirvoin/outfits-server/graph/generated"
+	"github.com/hirvoin/outfits-server/internal/auth"
 	"github.com/hirvoin/outfits-server/internal/database"
 )
 
@@ -26,11 +28,14 @@ func main() {
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	defer client.Disconnect(ctx)
 
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
+	router := chi.NewRouter()
+	router.Use(auth.Middleware())
 
-	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", srv)
+	server := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
+
+	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
+	router.Handle("/query", server)
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Fatal(http.ListenAndServe(":"+port, router))
 }

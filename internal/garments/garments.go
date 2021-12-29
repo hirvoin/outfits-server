@@ -21,7 +21,8 @@ type Garment struct {
 	ImageUri   string             `bson:"imageUri"`
 }
 
-// Formats collection Garment to model Garment
+// Formats collection Garment to model Garment.
+// TODO: refactor from method to function
 func (dbGarment *Garment) FormatToModel() *model.Garment {
 	var garment model.Garment
 	garment.ID = dbGarment.ID.Hex()

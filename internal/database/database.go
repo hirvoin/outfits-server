@@ -27,6 +27,7 @@ const (
 	DB               = "outfits-app"
 	GARMENTS         = "garments"
 	OUTFITS          = "outfits"
+	USERS            = "users"
 )
 
 func GetMongoClient() (*mongo.Client, error) {
