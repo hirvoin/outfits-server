@@ -2,7 +2,7 @@ package database
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"os"
 	"sync"
 
@@ -35,7 +35,7 @@ func GetMongoClient() (*mongo.Client, error) {
 	mongoOnce.Do(func() {
 		err := godotenv.Load()
 		if err != nil {
-			log.Fatal("Error loading .env file")
+			fmt.Println("Error loading .env file")
 		}
 		mongoUser := os.Getenv("MONGO_DB_USER")
 		mongoPassword := os.Getenv("MONGO_DB_PASSWORD")

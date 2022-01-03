@@ -21,9 +21,8 @@ type Garment struct {
 	ImageUri   string             `bson:"imageUri"`
 }
 
-// Formats collection Garment to model Garment.
-// TODO: refactor from method to function
-func (dbGarment *Garment) FormatToModel() *model.Garment {
+// Formats database Garment to GraphQL model Garment.
+func FormatToModel(dbGarment *Garment) *model.Garment {
 	var garment model.Garment
 	garment.ID = dbGarment.ID.Hex()
 	garment.Title = dbGarment.Title
@@ -37,7 +36,7 @@ func (dbGarment *Garment) FormatToModel() *model.Garment {
 
 // Insert new garment to the collection.
 func CreateGarment(garment Garment) (*mongo.InsertOneResult, error) {
-	//Get MongoDB connection using connectionhelper.
+	// Get MongoDB connection using connectionhelper.
 	client, err := database.GetMongoClient()
 	if err != nil {
 		return nil, err
@@ -46,7 +45,7 @@ func CreateGarment(garment Garment) (*mongo.InsertOneResult, error) {
 	//Create a handle to the respective collection in the database.
 	collection := client.Database(database.DB).Collection(database.GARMENTS)
 
-	//Perform InsertOne operation & validate against the error.
+	// Perform InsertOne operation & validate against the error.
 	res, err := collection.InsertOne(context.TODO(), garment)
 	if err != nil {
 		return nil, err
@@ -59,7 +58,7 @@ func CreateGarment(garment Garment) (*mongo.InsertOneResult, error) {
 func EditGarment(garment Garment) (Garment, error) {
 	newGarment := Garment{}
 
-	//Get MongoDB connection using connectionhelper.
+	// Get MongoDB connection using connectionhelper.
 	client, err := database.GetMongoClient()
 	if err != nil {
 		return newGarment, err
@@ -70,7 +69,7 @@ func EditGarment(garment Garment) (Garment, error) {
 
 	filter := bson.D{primitive.E{Key: "_id", Value: garment.ID}}
 
-	//Perform FindOneAndReplace & validate against the error.
+	// Perform FindOneAndReplace & validate against the error.
 	err = collection.FindOneAndReplace(context.TODO(), filter, garment).Decode(&newGarment)
 
 	if err != nil {
@@ -92,7 +91,7 @@ func GetGarmentById(id string) (Garment, error) {
 
 	filter := bson.D{primitive.E{Key: "_id", Value: objId}}
 
-	//Get MongoDB connection.
+	// Get MongoDB connection.
 	client, err := database.GetMongoClient()
 	if err != nil {
 		return garment, err

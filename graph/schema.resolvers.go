@@ -42,8 +42,8 @@ func (r *mutationResolver) CreateOutfit(ctx context.Context, input model.NewOutf
 	var garmentObjectIds []primitive.ObjectID
 	var modelGarments []*model.Garment
 
-	for _, stringId := range input.Garments {
-		objId, err := primitive.ObjectIDFromHex(stringId)
+	for _, id := range input.Garments {
+		objId, err := primitive.ObjectIDFromHex(id)
 		if err != nil {
 			fmt.Println(err)
 			return nil, err
@@ -60,7 +60,7 @@ func (r *mutationResolver) CreateOutfit(ctx context.Context, input model.NewOutf
 
 	for _, dbGarment := range dbGarments {
 		dbGarment.WearCount++
-		modelGarments = append(modelGarments, dbGarment.FormatToModel())
+		modelGarments = append(modelGarments, garments.FormatToModel(&dbGarment))
 	}
 
 	outfit.ID = primitive.NewObjectID()
@@ -74,8 +74,7 @@ func (r *mutationResolver) CreateOutfit(ctx context.Context, input model.NewOutf
 		return nil, err
 	}
 
-	// TODO: Refactor time formatting
-	return &model.Outfit{ID: outfit.ID.Hex(), Date: outfit.Date.Time().String(), Garments: modelGarments}, nil
+	return &model.Outfit{ID: outfit.ID.Hex(), Date: outfit.Date.Time().Format("2006-01-02"), Garments: modelGarments}, nil
 }
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (string, error) {
@@ -156,7 +155,7 @@ func (r *queryResolver) Garments(ctx context.Context, category *string, id *stri
 		if err != nil {
 			return result, errors.New("No garments found with given id.")
 		}
-		result = append(result, garment.FormatToModel())
+		result = append(result, garments.FormatToModel(&garment))
 		return result, nil
 	}
 
@@ -193,10 +192,10 @@ func (r *queryResolver) Outfits(ctx context.Context) ([]*model.Outfit, error) {
 		}
 
 		for _, dbGarment := range dbGarments {
-			modelGarments = append(modelGarments, dbGarment.FormatToModel())
+			modelGarments = append(modelGarments, garments.FormatToModel(&dbGarment))
 		}
 
-		result = append(result, &model.Outfit{ID: outfit.ID.Hex(), Garments: modelGarments, Date: outfit.Date.Time().String()})
+		result = append(result, &model.Outfit{ID: outfit.ID.Hex(), Garments: modelGarments, Date: outfit.Date.Time().Format("2006-01-02")})
 	}
 	return result, nil
 }
