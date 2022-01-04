@@ -42,22 +42,24 @@ func (r *mutationResolver) CreateOutfit(ctx context.Context, input model.NewOutf
 	var garmentObjectIds []primitive.ObjectID
 	var modelGarments []*model.Garment
 
+	// Create garmentObjectIds slice
 	for _, id := range input.Garments {
 		objId, err := primitive.ObjectIDFromHex(id)
 		if err != nil {
 			fmt.Println(err)
 			return nil, err
 		}
-
 		garmentObjectIds = append(garmentObjectIds, objId)
 	}
 
+	// Fetch garments
 	dbGarments, err := garments.GetGarmentsByIds(garmentObjectIds)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
 	}
 
+	// Create GraphQL model garments, increase garment wearcount, add them to slice
 	for _, dbGarment := range dbGarments {
 		dbGarment.WearCount++
 		modelGarments = append(modelGarments, garments.FormatToModel(&dbGarment))
@@ -87,6 +89,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 	if err != nil {
 		return "", err
 	}
+
 	return token, nil
 }
 
@@ -140,10 +143,12 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, input model.Refresh
 	if err != nil {
 		return "", fmt.Errorf("access denied")
 	}
+
 	token, err := jwt.GenerateToken(username)
 	if err != nil {
 		return "", err
 	}
+
 	return token, nil
 }
 
@@ -155,6 +160,7 @@ func (r *queryResolver) Garments(ctx context.Context, category *string, id *stri
 		if err != nil {
 			return result, errors.New("No garments found with given id.")
 		}
+
 		result = append(result, garments.FormatToModel(&garment))
 		return result, nil
 	}
@@ -176,19 +182,19 @@ func (r *queryResolver) Garments(ctx context.Context, category *string, id *stri
 func (r *queryResolver) Outfits(ctx context.Context) ([]*model.Outfit, error) {
 	var result []*model.Outfit
 
-	dbOutfits, outfitsError := outfits.GetAll()
-	if outfitsError != nil {
-		fmt.Println(outfitsError)
-		return nil, outfitsError
+	dbOutfits, err := outfits.GetAll()
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
 	}
 
 	for _, outfit := range dbOutfits {
 		var modelGarments []*model.Garment
 
-		dbGarments, garmentError := garments.GetGarmentsByIds(outfit.Garments)
-		if garmentError != nil {
-			fmt.Println(garmentError)
-			return nil, garmentError
+		dbGarments, err := garments.GetGarmentsByIds(outfit.Garments)
+		if err != nil {
+			fmt.Println(err)
+			return nil, err
 		}
 
 		for _, dbGarment := range dbGarments {

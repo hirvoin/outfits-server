@@ -16,7 +16,9 @@ type User struct {
 	Password string             `bson:"password"`
 }
 
-// Insert the user to collection
+// TODO: Why Create and Authenticate are methods and not function - does not align with garments and outfits
+
+// Insert the user to collection.
 func (user *User) Create() {
 	client, err := database.GetMongoClient()
 

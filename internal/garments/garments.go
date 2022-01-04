@@ -36,13 +36,14 @@ func FormatToModel(dbGarment *Garment) *model.Garment {
 
 // Insert new garment to the collection.
 func CreateGarment(garment Garment) (*mongo.InsertOneResult, error) {
-	// Get MongoDB connection using connectionhelper.
+
+	// Get MongoDB connection.
 	client, err := database.GetMongoClient()
 	if err != nil {
 		return nil, err
 	}
 
-	//Create a handle to the respective collection in the database.
+	// Create a handle to the respective collection in the database.
 	collection := client.Database(database.DB).Collection(database.GARMENTS)
 
 	// Perform InsertOne operation & validate against the error.
@@ -54,19 +55,20 @@ func CreateGarment(garment Garment) (*mongo.InsertOneResult, error) {
 	return res, nil
 }
 
-// Edit garment by replacing garment with new data
+// Edit garment by replacing garment with new data.
 func EditGarment(garment Garment) (Garment, error) {
 	newGarment := Garment{}
 
-	// Get MongoDB connection using connectionhelper.
+	// Get MongoDB connection.
 	client, err := database.GetMongoClient()
 	if err != nil {
 		return newGarment, err
 	}
 
-	//Create a handle to the respective collection in the database.
+	// Create a handle to the respective collection in the database.
 	collection := client.Database(database.DB).Collection(database.GARMENTS)
 
+	// Define filter query for fetching specific garment from collection.
 	filter := bson.D{primitive.E{Key: "_id", Value: garment.ID}}
 
 	// Perform FindOneAndReplace & validate against the error.
@@ -79,16 +81,16 @@ func EditGarment(garment Garment) (Garment, error) {
 	return newGarment, nil
 }
 
-// Get Garment by id from collection.
+// Get Garment by id from collection. TODO: use objectId as paramater
 func GetGarmentById(id string) (Garment, error) {
 	garment := Garment{}
 
-	// Define filter query for fetching specific garment from collection
 	objId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return garment, err
 	}
 
+	// Define filter query for fetching specific garment from collection.
 	filter := bson.D{primitive.E{Key: "_id", Value: objId}}
 
 	// Get MongoDB connection.
@@ -114,19 +116,19 @@ func GetGarmentById(id string) (Garment, error) {
 func GetGarmentsByIds(ids []primitive.ObjectID) ([]Garment, error) {
 	garments := []Garment{}
 
-	//Get MongoDB connection.
+	// Get MongoDB connection.
 	client, err := database.GetMongoClient()
 	if err != nil {
 		return garments, err
 	}
 
-	//Define filter query for fetching specific documents from collection
+	// Define filter query for fetching specific documents from collection
 	filter := bson.M{"_id": bson.M{"$in": ids}}
 
 	// Create a handle to the respective collection in the database.
 	collection := client.Database(database.DB).Collection(database.GARMENTS)
 
-	// Perform FindOne operation & validate against the error.
+	// Perform Find operation & validate against the error.
 	cur, err := collection.Find(context.TODO(), filter)
 	if err != nil {
 		return garments, err

@@ -23,10 +23,10 @@ func CreateOutfit(outfit Outfit) (*mongo.InsertOneResult, error) {
 		return nil, err
 	}
 
-	//Create a handle to the respective collection in the database.
+	// Create a handle to the respective collection in the database.
 	collection := client.Database(database.DB).Collection(database.OUTFITS)
 
-	//Perform InsertOne operation & validate against the error.
+	// Perform InsertOne operation & validate against the error.
 	res, err := collection.InsertOne(context.TODO(), outfit)
 	if err != nil {
 		return nil, err
@@ -35,15 +35,19 @@ func CreateOutfit(outfit Outfit) (*mongo.InsertOneResult, error) {
 	return res, nil
 }
 
-// Get Outfit by id from collection.
+// Get Outfit by id from collection. TODO: use objectId as parameter
 func GetOutfitById(id string) (Outfit, error) {
 	outfit := Outfit{}
 
 	//Define filter query for fetching specific document from collection
-	objId, _ := primitive.ObjectIDFromHex(id)
+	objId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return outfit, err
+	}
+
 	filter := bson.D{primitive.E{Key: "_id", Value: objId}}
 
-	//Get MongoDB connection.
+	// Get MongoDB connection.
 	client, err := database.GetMongoClient()
 	if err != nil {
 		return outfit, err
@@ -65,10 +69,10 @@ func GetOutfitById(id string) (Outfit, error) {
 func GetAll() ([]Outfit, error) {
 	outfits := []Outfit{}
 
-	//Define filter query for fetching specific document from collection
+	// Define filter query for fetching specific document from collection
 	filter := bson.D{{}}
 
-	//Get MongoDB connection.
+	// Get MongoDB connection.
 	client, err := database.GetMongoClient()
 	if err != nil {
 		return outfits, err
