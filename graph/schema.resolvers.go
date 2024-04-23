@@ -117,7 +117,15 @@ func (r *mutationResolver) UpdateGarment(ctx context.Context, input *model.Updat
 		return nil, err
 	}
 
-	return &model.Garment{ID: updatedGarment.ID.Hex(), Title: updatedGarment.Title, Color: updatedGarment.Color, Category: updatedGarment.Category, ImageURI: updatedGarment.ImageUri, WearCount: updatedGarment.WearCount, IsFavorite: updatedGarment.IsFavorite}, nil
+	return &model.Garment{
+			ID:         updatedGarment.ID.Hex(),
+			Title:      updatedGarment.Title,
+			Color:      updatedGarment.Color,
+			Category:   updatedGarment.Category,
+			ImageURI:   updatedGarment.ImageUri,
+			WearCount:  updatedGarment.WearCount,
+			IsFavorite: updatedGarment.IsFavorite},
+		nil
 }
 
 func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string, error) {
